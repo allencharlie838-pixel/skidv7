@@ -474,7 +474,16 @@ do
 			for _, u in data.users do
 				local uid = tonumber(u.userId)
 				if uid and uid ~= lplr.UserId then
-					newMap[uid] = {tier = u.tier or 0, username = u.username or '?'}
+					local inServer = false
+					for _, p in playersService:GetPlayers() do
+						if p.UserId == uid then
+							inServer = true
+							break
+						end
+					end
+					if inServer then
+						newMap[uid] = {tier = u.tier or 0, username = u.username or '?'}
+					end
 				end
 			end
 
