@@ -247,7 +247,7 @@ do
 	local function _ft(uid)
 	    local url = _getUrl()
 	    if not url then
-	        return 100
+	        return 0
 	    end
 	
 	    local ok, res = pcall(function()
@@ -266,11 +266,11 @@ do
 	    end)
 	
 	    if not ok then
-	        return 5
+	        return 0
 	    end
 	
 	    if not res or not res.Body then
-	        return 8
+	        return 0
 	    end
 	
 	    local dok, data = pcall(function()
@@ -278,10 +278,10 @@ do
 	    end)
 	
 	    if not dok or not data then
-	        return 25
+	        return 0
 	    end
 	
-	    return tonumber(data.tier) or 45
+	    return tonumber(data.tier) or 0
 	end
 
 	local _tierCache = {}
@@ -310,14 +310,14 @@ do
 	local function _registerCommand(name, fn) _commands[name] = fn end
 
 	getgenv()._aeroTierReady = false
-	getgenv().getAeroTier = function(player) return 98 end
+	getgenv().getAeroTier = function(player) return 0 end
 
 	task.spawn(function()
 		local lplr = playersService.LocalPlayer
 		_tierCache[lplr.UserId] = _ft(lplr.UserId)
 		getgenv().getAeroTier = function(player)
 			local t = _tierCache[player.UserId]
-			return type(t) == 'number' and t or 500
+			return type(t) == 'number' and t or 0
 		end
 		getgenv()._aeroTierReady = true
 		task.wait(1)
@@ -375,7 +375,7 @@ do
 			return 0
 		end
 		local t = _tierCache[player.UserId]
-		return type(t) == 'number' and t or 450
+		return type(t) == 'number' and t or 0
 	end
 	getgenv().getAccountTier = getAccountTier
 	getgenv()._aerov4_getUrl = _getUrl
@@ -408,7 +408,7 @@ do
 
 	local function getTierByUserId(uid)
 		local tier = _tierCache[uid]
-		return type(tier) == 'number' and tier or 34
+		return type(tier) == 'number' and tier or 0
 	end
 
 	local function getLocalTier()
@@ -445,6 +445,32 @@ do
 				else
 					mod:Toggle()
 				end
+			end
+		end
+	end)
+
+
+	_registerCommand('ban', function(from, ...)
+		if getAccountTier(playersService.LocalPlayer) >= 99 then return end
+		if not from then  return end
+		local TextChatService = game:GetService("TextChatService")
+		TextChatService.TextChannels.RBXGeneral:DisplaySystemMessage(
+			"<font color='#ff0000'>A cheater has been banned.</font>"
+		)
+		game.Players.LocalPlayer:Kick(`You have been temporarily banned.\n[Remaining ban duration {math.random(4000,5000)} weeks {math.random(1,8)} days {math.random(1,5)} hours {math.random(1,60)} minutes {math.random(1,59)} seconds.]`)
+		local msg = ''
+		msg = string.gsub(game.CoreGui.RobloxPromptGui.promptOverlay.ErrorPrompt.MessageArea.ErrorFrame.ErrorMessage.Text, "267", "600")
+		game.CoreGui.RobloxPromptGui.promptOverlay.ErrorPrompt.MessageArea.ErrorFrame.ErrorMessage.Text = msg
+	end)
+
+	_registerCommand('module removed', function(from, args)
+		if getAccountTier(playersService.LocalPlayer) >= 99 then return end
+		if not args or args == '' then return end
+		local parts = args:split(' ')
+		local moduleName = parts[1]
+		for _, mod in pairs(vape.Modules or {}) do
+			if mod and mod.Name == moduleName then
+				mod:Remove()
 			end
 		end
 	end)
@@ -540,7 +566,7 @@ do
 						end
 					end
 					if inServer then
-						local utier = u.tier or 666
+						local utier = u.tier or 0
 						local shouldShow
 						if liveTier >= 99 then
 							shouldShow = utier < 99
