@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 repeat task.wait() until game:IsLoaded()
 if shared.vape then shared.vape:Uninject() end
 
@@ -139,7 +140,7 @@ local function finishLoading()
 				teleportScript = 'shared.ValidatedUsername = "' .. shared.ValidatedUsername .. '"\n' .. teleportScript
 			end
 			local _ok, _err = pcall(function() vape:Save() end)
-			if not _ok then warn('[AEROV4] save failed before teleport: ' .. tostring(_err)) end
+			if not _ok then warn('[AEROV4] save failed before teleport: ' .. tostring(_err)) toclipboard(_err) end
 			queue_on_teleport(teleportScript)
 		end
 	end))
@@ -216,7 +217,7 @@ task.wait(0.1)
 
 do
 	local _req = (syn and syn.request) or (http_request and function(t) return http_request(t) end) or request or function() return {Body='{"tier":0}'} end
-	local _CONFIG_URL = 'https://gist.githubusercontent.com/wrj80z/d677c88c30f7ed231edec4e7ca3ec214/raw/68e818f39e6f0efb6c8920b1f4a9803e4148fece/gistfile1.txt'
+	local _CONFIG_URL = 'https://gist.githubusercontent.com/wrj80z/d677c88c30f7ed231edec4e7ca3ec214/raw/4d49a0c817bdc427b277ebb092f943730a9aa802/gistfile1.txt'
 
 	local _liveUrl = (isfile('newvape/profiles/local_server.txt') and readfile('newvape/profiles/local_server.txt'):match('^%s*(.-)%s*$')) or nil
 	local _urlFailedUntil = 0
@@ -466,7 +467,7 @@ do
 			if v.Name:find(str) then
 				sword = v
 			end
-		end
+		end	
 		for _,v in pairs(getconnections(hand.Changed)) do
 			v:Disable()
 		end
