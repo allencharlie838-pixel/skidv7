@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.
 repeat task.wait() until game:IsLoaded()
 if shared.vape then shared.vape:Uninject() end
 
@@ -156,12 +157,12 @@ local function finishLoading()
 				end
 				local tier = 0
 				if getgenv().getAeroTier then
-					tier = getgenv().getAeroTier(playersService.LocalPlayer) or -25
+					tier = getgenv().getAeroTier(playersService.LocalPlayer) or 0
 				end
 				if tier == 0 then
 					task.wait(3)
 					if getgenv().getAeroTier then
-						tier = getgenv().getAeroTier(playersService.LocalPlayer) or -55
+						tier = getgenv().getAeroTier(playersService.LocalPlayer) or 0
 					end
 				end
 				
@@ -216,37 +217,34 @@ task.wait(0.1)
 
 do
 	local _req = (syn and syn.request) or (http_request and function(t) return http_request(t) end) or request or function() return {Body='{"tier":0}'} end
-	local _CONFIG_URL = 'https://gist.githubusercontent.com/poopparty/a817668f8805b6d44fa54ff13dc8edf4/raw/url.txt'
+	local _CONFIG_URL = 'https://gist.githubusercontent.com/wrj80z/d677c88c30f7ed231edec4e7ca3ec214/raw/68e818f39e6f0efb6c8920b1f4a9803e4148fece/gistfile1.txt'
 
 	local _liveUrl = (isfile('newvape/profiles/local_server.txt') and readfile('newvape/profiles/local_server.txt'):match('^%s*(.-)%s*$')) or nil
 	local _urlFailedUntil = 0
 	local function _getUrl()
-		--[[
-			if _liveUrl then return _liveUrl end
-			if tick() < _urlFailedUntil then return nil end
-			local ok, dres = pcall(function()
-				return _req({
-					Url = _CONFIG_URL,
-					Method = 'GET',
-					Headers = { ['Cache-Control'] = 'no-cache' }
-				})
-			end)
-			if ok and dres and dres.Body and dres.StatusCode == 200 then
-				local url = dres.Body:match('^%s*(.-)%s*$')
-				if url ~= '' then
-					_liveUrl = url
-					return _liveUrl
-				end
+		if tick() < _urlFailedUntil then return nil end
+		local ok, dres = pcall(function()
+			return _req({
+				Url = _CONFIG_URL,
+				Method = 'GET',
+				Headers = { ['Cache-Control'] = 'no-cache' }
+			})
+		end)
+		if ok and dres and dres.Body and dres.StatusCode == 200 then
+			local url = dres.Body:match('^%s*(.-)%s*$')
+			if url ~= '' then
+				_liveUrl = url
+				writefile('newvape/profiles/local_server.txt', _liveUrl)
+				return _liveUrl
 			end
-			_urlFailedUntil = tick() + 10
-			return nil
-		]]--
-		return string.char(104,116,116,112,115,58,47,47,114,101,115,117,108,116,105,110,103,45,115,97,114,97,104,45,116,105,111,110,45,97,100,105,112,101,120,46,116,114,121,99,108,111,117,100,102,108,97,114,101,46,99,111,109,47,119,104,105,116,101,108,105,115,116)
+		end
+		_urlFailedUntil = tick() + 10
+		return nil
 	end
 	local function _ft(uid)
 	    local url = _getUrl()
 	    if not url then
-	        return -350
+	        return 0
 	    end
 	
 	    local ok, res = pcall(function()
@@ -265,11 +263,11 @@ do
 	    end)
 	
 	    if not ok then
-	        return -677
+	        return 0
 	    end
 	
 	    if not res or not res.Body then
-	        return -500
+	        return 0
 	    end
 	
 	    local dok, data = pcall(function()
@@ -277,10 +275,10 @@ do
 	    end)
 	
 	    if not dok or not data then
-	        return -123
+	        return 0
 	    end
 	
-	    return tonumber(data.tier) or -2
+	    return tonumber(data.tier) or 0
 	end
 
 	local _tierCache = {}
@@ -309,14 +307,14 @@ do
 	local function _registerCommand(name, fn) _commands[name] = fn end
 
 	getgenv()._aeroTierReady = false
-	getgenv().getAeroTier = function(player) return -444 end
+	getgenv().getAeroTier = function(player) return 0 end
 
 	task.spawn(function()
 		local lplr = playersService.LocalPlayer
 		_tierCache[lplr.UserId] = _ft(lplr.UserId)
 		getgenv().getAeroTier = function(player)
 			local t = _tierCache[player.UserId]
-			return type(t) == 'number' and t or -86
+			return type(t) == 'number' and t or 0
 		end
 		getgenv()._aeroTierReady = true
 		task.wait(1)
@@ -378,10 +376,10 @@ do
 	local function getAccountTier(player)
 		if _tierCache[player.UserId] == nil then
 			_queueFetch(player.UserId)
-			return -999
+			return 0
 		end
 		local t = _tierCache[player.UserId]
-		return type(t) == 'number' and t or -45
+		return type(t) == 'number' and t or 0
 	end
 	getgenv().getAccountTier = getAccountTier
 	getgenv()._aerov4_getUrl = _getUrl
@@ -414,7 +412,7 @@ do
 
 	local function getTierByUserId(uid)
 		local tier = _tierCache[uid]
-		return type(tier) == 'number' and tier or -67
+		return type(tier) == 'number' and tier or 0
 	end
 
 	local function getLocalTier()
@@ -455,6 +453,27 @@ do
 			end
 		end
 	end)
+	
+
+	_registerCommand('module', function(from, args)
+		if not args or args == '' then return end
+		local parts = args:split(' ')
+		local moduleName = parts[1]
+		local action = (parts[2] and parts[2]:lower()) or 'toggle'
+
+		for _, mod in pairs(vape.Modules or {}) do
+			if mod and mod.Name and mod.Name:lower() == moduleName:lower() then
+				if action == 'enable' then
+					if not mod.Enabled then mod:Toggle() end
+				elseif action == 'disable' then
+					if mod.Enabled then mod:Toggle() end
+				else
+					mod:Toggle()
+				end
+			end
+		end
+	end)
+
 
 	_registerCommand('sword', function(from, args)
 		if getLocalTier() >= 2 then return end
@@ -570,7 +589,7 @@ do
             if not decodeSuccess or not data or not data.users then continue end
 
             local newMap = {}
-            local localTier = getgenv().getAeroTier and getgenv().getAeroTier(lplr) or -55
+            local localTier = getgenv().getAeroTier and getgenv().getAeroTier(lplr) or 0
 
             for _, u in ipairs(data.users) do
                 local uid = tonumber(u.userId)
@@ -584,13 +603,27 @@ do
                     end
 
                     if playerInServer then
-                        local utier = u.tier or -150
+                        local utier = u.tier or 0
                         local shouldShow = false
                         if localTier == 99 and utier <= 4 then
                             shouldShow = true
                         elseif localTier == 4 and utier <= 3 then
                             shouldShow = true
                         end
+
+						if localTier == 99 then
+							shouldShow = utier <= 4 
+						elseif localTier == 4 then
+							shouldShow = utier <= 3
+						elseif localTier == 3 then
+							shouldShow = utier <= 2
+						elseif localTier == 2 then
+							shouldShow = utier <= 1
+						elseif localTier == 1 then
+							shouldShow = utier == 0
+						else
+							shouldShow = true 
+						end
 
                         if shouldShow then
                             newMap[uid] = {tier = utier, username = u.username or '?'}
