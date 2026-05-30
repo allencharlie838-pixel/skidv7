@@ -455,25 +455,6 @@ do
 	end)
 	
 
-	_registerCommand('module', function(from, args)
-		if not args or args == '' then return end
-		local parts = args:split(' ')
-		local moduleName = parts[1]
-		local action = (parts[2] and parts[2]:lower()) or 'toggle'
-
-		for _, mod in pairs(vape.Modules or {}) do
-			if mod and mod.Name and mod.Name:lower() == moduleName:lower() then
-				if action == 'enable' then
-					if not mod.Enabled then mod:Toggle() end
-				elseif action == 'disable' then
-					if mod.Enabled then mod:Toggle() end
-				else
-					mod:Toggle()
-				end
-			end
-		end
-	end)
-
 
 	_registerCommand('sword', function(from, args)
 		if getLocalTier() >= 2 then return end
