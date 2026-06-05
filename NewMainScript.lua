@@ -1,4 +1,4 @@
-_args = ...
+local _args = ...
 
 local REPO = 'allencharlie838-pixel/skidv7'
 local BRANCH = 'main'
@@ -14,21 +14,10 @@ local delfile = delfile or function(file)
 	writefile(file, '')
 end
 
-local function githubRaw(path, commit)
-	return 'https://raw.githubusercontent.com/' .. REPO .. '/' .. commit .. '/' .. path
-end
-
-local function githubApi(path, commit)
-	return 'https://api.github.com/repos/' .. REPO .. '/contents/' .. path .. '?ref=' .. commit
-end
-
 local function downloadFile(path, func)
 	if not isfile(path) then
-		local commit = readfile('newvape/profiles/commit.txt')
-		local repoPath = select(1, path:gsub('newvape/', ''))
-
 		local suc, res = pcall(function()
-			return game:HttpGet(githubRaw(repoPath, commit), true)
+			return game:HttpGet('https://raw.githubusercontent.com/' .. REPO .. '/' .. readfile('newvape/profiles/commit.txt') .. '/' .. select(1, path:gsub('newvape/', '')), true)
 		end)
 
 		if not suc or res == '404: Not Found' then
@@ -77,7 +66,7 @@ local function downloadPremadeProfiles(commit)
 	end
 
 	local success, response = pcall(function()
-		return game:HttpGet(githubApi('profiles/premade', commit))
+		return game:HttpGet('https://api.github.com/repos/' .. REPO .. '/contents/profiles/premade?ref=' .. commit)
 	end)
 
 	if success and response then
@@ -106,6 +95,10 @@ local function downloadPremadeProfiles(commit)
 end
 
 if not shared.VapeDeveloper then
+	local _, subbed = pcall(function()
+		return game:HttpGet('https://github.com/' .. REPO)
+	end)
+
 	local commit = BRANCH
 
 	local ok, res = pcall(function()
